@@ -8,14 +8,6 @@
   become_user: "{{ run_as_user }}"
   when: git_repo_name is not none
 
-- name: Add Habitat extension
-  command: "git submodule add https://github.com/MegaphoneJon/habitat.git {{ civicrm_custom_path }}/extensions/habitat"
-  args:
-    chdir: "{{ webroot }}"
-    creates: "{{ civicrm_custom_path }}/extensions/habitat"
-  become_user: "{{ run_as_user }}"
-  when: civicrm == 'Yes' and env == 'Dev'
-
 - name: set git name
   git_config:
     name: user.name
@@ -34,8 +26,43 @@
   become_user: "{{ run_as_user }}"
   when: civicrm == 'Yes' and env == 'Dev'
 
+- name: Add Megaphone monitoring
+  command: "git submodule add https://github.com/MegaphoneJon/com.megaphonetech.monitoring.git {{ civicrm_custom_path }}/extensions/com.megaphonetech.monitoring"
+  args:
+    chdir: "{{ webroot }}"
+    creates: "{{ civicrm_custom_path }}/extensions/com.megaphonetech.monitoring"
+  when: civicrm == 'Yes'
+  become_user: "{{ run_as_user }}"
+
+- name: Enable Megaphone monitoring
+  shell: "PATH=$HOME/bin:$PATH;cv en monitoring --refresh"
+  args:
+    chdir: "{{ webroot }}"
+  become_user: "{{ run_as_user }}"
+  when: civicrm == 'Yes'
+
+- name: git commit Megaphone monitoring
+  command: "git commit -m 'Megaphone monitoring extension'"
+  args:
+    chdir: "{{ webroot }}"
+  register: commit_result
+  become: yes
+  become_user: "{{ run_as_user }}"
+  changed_when: commit_result.rc == 0
+  failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
+  when: civicrm == 'Yes' and env == 'Dev'
+
+
+- name: Add Habitat extension
+  command: "git submodule add https://github.com/MegaphoneJon/habitat.git {{ civicrm_custom_path }}/extensions/habitat"
+  args:
+    chdir: "{{ webroot }}"
+    creates: "{{ civicrm_custom_path }}/extensions/habitat"
+  become_user: "{{ run_as_user }}"
+  when: civicrm == 'Yes' and env == 'Dev'
+
 - name: Enable Habitat
-  command: "cv en habitat --refresh"
+  shell: "PATH=$HOME/bin:$PATH;cv en habitat --refresh"
   args:
     chdir: "{{ webroot }}"
   become_user: "{{ run_as_user }}"
@@ -107,11 +134,10 @@
 
 - name: Move allavailableupgrades
   command: "mv {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades-master {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades"
-  when: allavailableupgradesexists.stat.exists
-  when: civicrm == 'Yes' and env == 'Dev'
+  when: civicrm == 'Yes' and env == 'Dev' and allavailableupgradesexists.stat.exists 
 
 - name: Enable allavailableupgrades
-  command: "cv en allavailableupgrades --refresh"
+  shell: "PATH=$HOME/bin:$PATH;cv en allavailableupgrades --refresh"
   args:
     chdir: "{{ webroot }}"
   become_user: "{{ run_as_user }}"
