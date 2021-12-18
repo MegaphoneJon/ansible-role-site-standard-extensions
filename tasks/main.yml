@@ -7,6 +7,7 @@
   become: yes
   become_user: "{{ run_as_user }}"
   when: git_repo_name is not none
+  tags: allavailableupgrades
 
 - name: set git name
   git_config:
@@ -109,6 +110,7 @@
     state: directory
   become_user: "{{ run_as_user }}"
   when: civicrm == 'Yes' and env == 'Dev'
+  tags: allavailableupgrades
 
 - name: Download allavailableupgrades
   ansible.builtin.get_url:
@@ -116,6 +118,7 @@
     dest: "/tmp/{{ bare_url | hash('md5') }}/allavailableupgrades.zip"
   become_user: "{{ run_as_user }}"
   when: civicrm == 'Yes' and env == 'Dev'
+  tags: allavailableupgrades
 
 - name: unzip allavailableupgrades
   ansible.builtin.unarchive:
@@ -125,16 +128,19 @@
     creates: "{{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades"
   become_user: "{{ run_as_user }}"
   when: civicrm == 'Yes' and env == 'Dev'
+  tags: allavailableupgrades
 
 - name: Check if allavailableupgrades is moved
   stat: 
     path: "{{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades-master"
   register: allavailableupgradesexists
   when: civicrm == 'Yes' and env == 'Dev'
+  tags: allavailableupgrades
 
 - name: Move allavailableupgrades
   command: "mv {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades-master {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades"
   when: civicrm == 'Yes' and env == 'Dev' and allavailableupgradesexists.stat.exists 
+  tags: allavailableupgrades
 
 - name: Enable allavailableupgrades
   shell: "PATH=$HOME/bin:$PATH;cv en allavailableupgrades --refresh"
@@ -142,6 +148,7 @@
     chdir: "{{ webroot }}"
   become_user: "{{ run_as_user }}"
   when: civicrm == 'Yes'
+  tags: allavailableupgrades
 
 - name: git add the plugin
   command: git add -v -A
@@ -152,6 +159,7 @@
   become_user: "{{ run_as_user }}"
   changed_when: add_result.stdout != ''
   failed_when: add_result.stderr != ''
+  tags: allavailableupgrades
 
 - name: git commit allavailableupgrades
   command: "git commit -m 'allavailableupgrades extension'"
@@ -163,6 +171,7 @@
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when: civicrm == 'Yes' and env == 'Dev'
+  tags: allavailableupgrades
 
 - name: git push
   command: git push
@@ -174,3 +183,4 @@
   when: internal_repo == "1" and (git_repo_push_url is search("ssh://")) and civicrm == 'Yes' and env == 'Dev'
   changed_when: push_result_addl.rc == 0 and push_result_addl.stderr != 'Everything up-to-date'
   failed_when: not(push_result_addl.rc == 0)
+  tags: allavailableupgrades
