@@ -52,7 +52,6 @@
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when: civicrm == 'Yes' and env == 'Dev'
 
-
 - name: Add Habitat extension
   command: "git submodule add https://github.com/MegaphoneJon/habitat.git {{ civicrm_custom_path }}/extensions/habitat"
   args:
@@ -81,6 +80,14 @@
 
 - name: Add habitat-wp
   command: "git submodule add https://github.com/MegaphoneJon/habitat-wp.git wp-content/plugins/habitat-wp"
+  args:
+    chdir: "{{ gitroot }}"
+    creates: "{{ webroot }}/wp-content/plugins/habitat-wp"
+  become_user: "{{ run_as_user }}"
+  when: cms == 'WordPress' and env == 'Dev'
+
+- name: habitat-wp is on "main" branch
+  command: "git submodule set-branch --branch main habitat-wp"
   args:
     chdir: "{{ gitroot }}"
     creates: "{{ webroot }}/wp-content/plugins/habitat-wp"
