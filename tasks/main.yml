@@ -3,7 +3,8 @@
     repo: "{{ git_repo_url }}"
     dest: "{{ gitroot }}"
     track_submodules: no
-  become: yes
+    key_file: "{{ ssh_key_location + '/id_ed25519' if ssh_key_location is defined }}"
+    ssh_opts: "{{ '-o UserKnownHostsFile=' + ssh_key_location + '/known_hosts' if ssh_key_location is defined }}"  
   become_user: "{{ run_as_user }}"
   when: git_repo_url is not none
   tags: allavailableupgrades
@@ -46,7 +47,6 @@
   args:
     chdir: "{{ webroot }}"
   register: commit_result
-  become: yes
   become_user: "{{ run_as_user }}"
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
@@ -72,7 +72,6 @@
   args:
     chdir: "{{ webroot }}"
   register: commit_result
-  become: yes
   become_user: "{{ run_as_user }}"
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
@@ -104,7 +103,6 @@
   args:
     chdir: "{{ webroot }}"
   register: commit_result
-  become: yes
   become_user: "{{ run_as_user }}"
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
@@ -161,7 +159,6 @@
   args:
     chdir: "{{ webroot }}"
   register: add_result
-  become: yes
   become_user: "{{ run_as_user }}"
   changed_when: add_result.stdout != ''
   failed_when: add_result.stderr != ''
@@ -172,7 +169,6 @@
   args:
     chdir: "{{ webroot }}"
   register: commit_result
-  become: yes
   become_user: "{{ run_as_user }}"
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
@@ -184,7 +180,6 @@
   args:
     chdir: "{{ webroot }}"
   register: push_result_addl
-  become: yes
   become_user: "{{ run_as_user }}"
   when: internal_repo == "1" and (git_repo_push_url is not search("https://")) and civicrm == 'Yes' and env == 'Dev'
   changed_when: push_result_addl.rc == 0 and push_result_addl.stderr != 'Everything up-to-date'
