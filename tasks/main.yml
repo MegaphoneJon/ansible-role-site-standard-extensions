@@ -11,7 +11,6 @@
     ssh_opts: "{{ '-o UserKnownHostsFile=' + ssh_key_location + '/known_hosts' if ssh_key_location is defined }}"  
   become_user: "{{ run_as_user }}"
   when: git_repo_url is not none
-  # tags: allavailableupgrades
 
 - name: set git name
   git_config:
@@ -111,73 +110,6 @@
   changed_when: commit_result.rc == 0
   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
   when: cms == 'WordPress' and env == 'Dev'
-
-- name: Create a site-specific temp folder
-  ansible.builtin.file:
-    path: "/tmp/{{ bare_url | hash('md5') }}"
-    state: directory
-  become_user: "{{ run_as_user }}"
-  when: civicrm == 'Yes' and env == 'Dev'
-  # tags: allavailableupgrades
-
-# - name: Download allavailableupgrades
-#   ansible.builtin.get_url:
-#     url: https://lab.civicrm.org/extensions/allavailableupgrades/-/archive/master/allavailableupgrades-master.zip
-#     dest: "/tmp/{{ bare_url | hash('md5') }}/allavailableupgrades.zip"
-#   become_user: "{{ run_as_user }}"
-#   when: civicrm == 'Yes' and env == 'Dev'
-#   tags: allavailableupgrades
-
-# - name: unzip allavailableupgrades
-#   ansible.builtin.unarchive:
-#     remote_src: yes
-#     src: "/tmp/{{ bare_url | hash('md5') }}/allavailableupgrades.zip"
-#     dest: "{{ webroot }}/{{ civicrm_custom_path }}/extensions/"
-#     creates: "{{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades"
-#   become_user: "{{ run_as_user }}"
-#   when: civicrm == 'Yes' and env == 'Dev'
-#   tags: allavailableupgrades
-
-# - name: Check if allavailableupgrades is moved
-#   stat: 
-#     path: "{{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades-master"
-#   register: allavailableupgradesexists
-#   when: civicrm == 'Yes' and env == 'Dev'
-#   tags: allavailableupgrades
-
-# - name: Move allavailableupgrades
-#   command: "mv {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades-master {{ webroot }}/{{ civicrm_custom_path }}/extensions/allavailableupgrades"
-#   when: civicrm == 'Yes' and env == 'Dev' and allavailableupgradesexists.stat.exists 
-#   tags: allavailableupgrades
-
-# - name: Enable allavailableupgrades
-#   shell: "PATH=$HOME/bin:$PATH;cv en allavailableupgrades --refresh"
-#   args:
-#     chdir: "{{ webroot }}"
-#   become_user: "{{ run_as_user }}"
-#   when: civicrm == 'Yes'
-#   tags: allavailableupgrades
-
-# - name: git add the plugin
-#   command: git add -v -A
-#   args:
-#     chdir: "{{ webroot }}"
-#   register: add_result
-#   become_user: "{{ run_as_user }}"
-#   changed_when: add_result.stdout != ''
-#   failed_when: add_result.stderr != ''
-#   tags: allavailableupgrades
-
-# - name: git commit allavailableupgrades
-#   command: "git commit -m 'allavailableupgrades extension'"
-#   args:
-#     chdir: "{{ webroot }}"
-#   register: commit_result
-#   become_user: "{{ run_as_user }}"
-#   changed_when: commit_result.rc == 0
-#   failed_when: not(commit_result.rc == 0 or 'nothing to commit, working tree clean' in commit_result.stdout_lines)
-#   when: civicrm == 'Yes' and env == 'Dev'
-#   tags: allavailableupgrades
 
 - name: git push
   command: git push
